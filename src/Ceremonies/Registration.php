@@ -6,16 +6,12 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use LaravelWebAuthn\Repositories\CredentialSource;
 use Psr\Http\Message\ServerRequestInterface;
-use Webauthn\AttestationStatement\AttestationObjectLoader;
-use Webauthn\AttestationStatement\AttestationStatementSupportManager;
-use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
 use Webauthn\AuthenticationExtensions\AuthenticationExtensionsClientInputs;
 use Webauthn\AuthenticationExtensions\ExtensionOutputCheckerHandler;
 use Webauthn\AuthenticatorAttestationResponse;
 use Webauthn\AuthenticatorAttestationResponseValidator;
 use Webauthn\AuthenticatorSelectionCriteria;
 use Webauthn\PublicKeyCredentialCreationOptions;
-use Webauthn\PublicKeyCredentialLoader;
 use Webauthn\PublicKeyCredentialParameters;
 use Webauthn\PublicKeyCredentialRpEntity;
 use Webauthn\PublicKeyCredentialUserEntity;
@@ -23,6 +19,8 @@ use Webauthn\TokenBinding\IgnoreTokenBindingHandler;
 
 class Registration
 {
+    use LoadsPublicKeyCredentials, CreatesAttestationManagers;
+
     public static function options(string $identifier)
     {
         // Relying Party Entity i.e. the application
@@ -58,22 +56,22 @@ class Registration
                 $challenge,
                 $supportedPublicKeyParams,
             )
-                ->setAttestation(config('webauthn.attestation_conveyance_preference'))
-                ->setAuthenticatorSelection(
-                    AuthenticatorSelectionCriteria::create()
-                        ->setResidentKey(
-                            config('webauthn.authenticator_selection_criteria.resident_key'),
-                        )->setAuthenticatorAttachment(
-                            config('webauthn.authenticator_selection_criteria.authenticator_attachment')
-                        )
-                )
-                ->setExtensions(
-                    AuthenticationExtensionsClientInputs::createFromArray([
-                        'credProps' => config(
-                            'webauthn.authenticator_credential_properties_extension.cred_props'
-                        ),
-                    ])
-                );
+            ->setAttestation(config('webauthn.attestation_conveyance_preference'))
+            ->setAuthenticatorSelection(
+                AuthenticatorSelectionCriteria::create()
+                    ->setResidentKey(
+                        config('webauthn.authenticator_selection_criteria.resident_key'),
+                    )->setAuthenticatorAttachment(
+                        config('webauthn.authenticator_selection_criteria.authenticator_attachment')
+                    )
+            )
+            ->setExtensions(
+                AuthenticationExtensionsClientInputs::createFromArray([
+                    'credProps' => config(
+                        'webauthn.authenticator_credential_properties_extension.cred_props'
+                    ),
+                ])
+            );
 
         $serializedOptions = $pkCreationOptions->jsonSerialize();
 
@@ -109,23 +107,16 @@ class Registration
         // This is a repo of our public key credentials
         $pkSourceRepo = new CredentialSource();
 
-        $attestationManager = AttestationStatementSupportManager::create();
-        $attestationManager->add(NoneAttestationStatementSupport::create());
 
         // The validator that will check the response from the device
         $responseValidator = AuthenticatorAttestationResponseValidator::create(
-            $attestationManager,
+            self::createAttestationManager(),
             $pkSourceRepo,
             IgnoreTokenBindingHandler::create(),
             ExtensionOutputCheckerHandler::create(),
         );
 
-        // A loader that will load the response from the device
-        $pkCredentialLoader = PublicKeyCredentialLoader::create(
-            AttestationObjectLoader::create($attestationManager)
-        );
-
-        $publicKeyCredential = $pkCredentialLoader->load(json_encode(request()->all()));
+        $publicKeyCredential = self::loadPublicKeyCredentials();
 
         $authenticatorAttestationResponse = $publicKeyCredential->getResponse();
 

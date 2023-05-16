@@ -10,14 +10,10 @@ use LaravelWebAuthn\Repositories\CredentialSource;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionClass;
 use Spatie\StructureDiscoverer\Discover;
-use Webauthn\AttestationStatement\AttestationObjectLoader;
-use Webauthn\AttestationStatement\AttestationStatementSupportManager;
-use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
 use Webauthn\AuthenticationExtensions\ExtensionOutputCheckerHandler;
 use Webauthn\AuthenticatorAssertionResponse;
 use Webauthn\AuthenticatorAssertionResponseValidator;
 use Webauthn\PublicKeyCredentialDescriptor;
-use Webauthn\PublicKeyCredentialLoader;
 use Webauthn\PublicKeyCredentialRequestOptions;
 use Webauthn\PublicKeyCredentialSource;
 use Webauthn\PublicKeyCredentialUserEntity;
@@ -25,6 +21,8 @@ use Webauthn\TokenBinding\IgnoreTokenBindingHandler;
 
 class Authentication
 {
+    use LoadsPublicKeyCredentials;
+
     public static function options(Model $user)
     {
         // User Entity
@@ -88,9 +86,6 @@ class Authentication
         // This is a repo of our public key credentials
         $pkSourceRepo = new CredentialSource();
 
-        $attestationManager = AttestationStatementSupportManager::create();
-        $attestationManager->add(NoneAttestationStatementSupport::create());
-
         $selectedAlgos = collect(config('webauthn.supported_algorithms'));
 
         $allAlgos = collect(
@@ -114,12 +109,7 @@ class Authentication
             $algorithmManager,
         );
 
-        // A loader that will load the response from the device
-        $pkCredentialLoader = PublicKeyCredentialLoader::create(
-            AttestationObjectLoader::create($attestationManager)
-        );
-
-        $publicKeyCredential = $pkCredentialLoader->loadArray(request()->all());
+        $publicKeyCredential = self::loadPublicKeyCredentials();
 
         $authenticatorAssertionResponse = $publicKeyCredential->getResponse();
 
