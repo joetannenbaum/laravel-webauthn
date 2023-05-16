@@ -1,24 +1,29 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "joetannenbaum/laravel-webauthn",
+    "description": "Integrate WebAuthn (passkey) authentication into your Laravel app",
     "keywords": [
-        ":vendor_name",
+        "joetannenbaum",
         "laravel",
-        ":package_slug"
+        "laravel-webauthn"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/joetannenbaum/laravel-webauthn",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "Joe Tannenbaum",
+            "email": "joe@joe.codes",
             "role": "Developer"
         }
     ],
     "require": {
         "php": "^8.1",
+        "illuminate/contracts": "^10.0",
+        "illuminate/http": "*",
+        "illuminate/validation": "*",
         "spatie/laravel-package-tools": "^1.14.0",
-        "illuminate/contracts": "^10.0"
+        "spatie/php-structure-discoverer": "^1.1",
+        "symfony/psr-http-message-bridge": "^2.2",
+        "web-auth/webauthn-lib": "^4.5"
     },
     "require-dev": {
         "laravel/pint": "^1.0",
@@ -31,17 +36,18 @@
         "phpstan/extension-installer": "^1.1",
         "phpstan/phpstan-deprecation-rules": "^1.0",
         "phpstan/phpstan-phpunit": "^1.0",
-        "spatie/laravel-ray": "^1.26"
+        "spatie/laravel-ray": "^1.26",
+        "tightenco/duster": "^2.0"
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "LaravelWebAuthn\\": "src/",
+            "LaravelWebAuthn\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/"
+            "LaravelWebAuthn\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -61,10 +67,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "LaravelWebAuthn\\LaravelWebauthnServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "LaravelWebauthn": "LaravelWebAuthn\\Facades\\LaravelWebauthn"
             }
         }
     },
