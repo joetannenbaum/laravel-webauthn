@@ -56,22 +56,22 @@ class Registration
                 $challenge,
                 $supportedPublicKeyParams,
             )
-            ->setAttestation(config('webauthn.attestation_conveyance_preference'))
-            ->setAuthenticatorSelection(
-                AuthenticatorSelectionCriteria::create()
-                    ->setResidentKey(
-                        config('webauthn.authenticator_selection_criteria.resident_key'),
-                    )->setAuthenticatorAttachment(
-                        config('webauthn.authenticator_selection_criteria.authenticator_attachment')
-                    )
-            )
-            ->setExtensions(
-                AuthenticationExtensionsClientInputs::createFromArray([
-                    'credProps' => config(
-                        'webauthn.authenticator_credential_properties_extension.cred_props'
-                    ),
-                ])
-            );
+                ->setAttestation(config('webauthn.attestation_conveyance_preference'))
+                ->setAuthenticatorSelection(
+                    AuthenticatorSelectionCriteria::create()
+                        ->setResidentKey(
+                            config('webauthn.authenticator_selection_criteria.resident_key'),
+                        )->setAuthenticatorAttachment(
+                            config('webauthn.authenticator_selection_criteria.authenticator_attachment')
+                        )
+                )
+                ->setExtensions(
+                    AuthenticationExtensionsClientInputs::createFromArray([
+                        'credProps' => config(
+                            'webauthn.authenticator_credential_properties_extension.cred_props'
+                        ),
+                    ])
+                );
 
         $serializedOptions = $pkCreationOptions->jsonSerialize();
 
@@ -106,7 +106,6 @@ class Registration
 
         // This is a repo of our public key credentials
         $pkSourceRepo = new CredentialSource();
-
 
         // The validator that will check the response from the device
         $responseValidator = AuthenticatorAttestationResponseValidator::create(
